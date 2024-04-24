@@ -20,7 +20,6 @@ public class Main {
         GroupParser groupParser = new GroupParser();
         AnswerParser answerParser = new AnswerParser();
         String userRoot = System.getProperty("user.home");
-        System.out.println("userRoot: " + userRoot);
         String rawFilePath = userRoot + "/Downloads/meeting_saved_chat.txt";
         ZoomChatSegmenter.segment(rawFilePath, 2);
         File rootDir = new File(userRoot + "/Downloads");

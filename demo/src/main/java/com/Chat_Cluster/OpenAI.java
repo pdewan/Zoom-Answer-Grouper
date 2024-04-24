@@ -161,7 +161,6 @@ public class OpenAI {
                                                         }
                                                         String fileName = String.valueOf(segment.getName().charAt(segment.getName().length() -5));
                                                         getCompletionRequest(tempPrompt, dir, fileName);
-                                                        System.out.println(dir.toString() + "  " + fileName + " is done");
                                                 } catch (IOException e) {
                                                         e.printStackTrace();
                                                 }
@@ -188,7 +187,6 @@ public class OpenAI {
                                                         }
                                                         String fileName = String.valueOf(segment.getName().charAt(segment.getName().length() -5));
                                                         getCompletionRequest(tempPrompt, classDir, fileName);
-                                                        System.out.println(classDir.toString() + "  " + fileName + " is done");
                                                 } catch (IOException e) {
                                                         e.printStackTrace();
                                                 }
@@ -198,8 +196,15 @@ public class OpenAI {
                 }
         }
 
-        public static int getGPTAnswerForNewestSegmentation(File classDir, QuestionType type) {
-                String targetPrompt = prompt;
+        public static int getGPTAnswerForNewestSegmentation(File classDir, QuestionType type) throws IOException {
+                Path filePath = Paths.get(System.getProperty("user.home"), "Downloads", "prompts", type.getType() + ".txt");
+                
+                // Read all bytes from the file
+                byte[] fileBytes = Files.readAllBytes(filePath);
+
+                // Convert the bytes to a String
+                String targetPrompt = new String(fileBytes, StandardCharsets.UTF_8);
+                System.out.println(targetPrompt);
                 if(type.getType().equals("Conceptual")){
                         targetPrompt = conceptualPrompt;
                 }
@@ -210,7 +215,6 @@ public class OpenAI {
                         // File[] folderList = classDir.listFiles();
                         // for (File folder : folderList) {
                         //         if (folder.isDirectory() && folder.getName().equals("segmentation")) {
-                                System.out.print(folder.getAbsolutePath());
                                         File[] segmentations = folder.listFiles();
                                         File segmentation = segmentations[0];
                                         String regex = "(\\d+)\\.txt$";
@@ -239,7 +243,6 @@ public class OpenAI {
                                                 }
                                                 String fileName = String.valueOf(retVal);
                                                 getCompletionRequest(tempPrompt, classDir, fileName);
-                                                System.out.println(classDir.toString() + "  " + fileName + " is done");
                                         } catch (IOException e) {
                                                 e.printStackTrace();
                                         }
@@ -251,7 +254,6 @@ public class OpenAI {
 
 
         private static void getCompletionRequest(String prompt, File classDir, String fileName) {
-                System.out.println(prompt);
                 String token = System.getenv("OPENAI_API_KEY_DEWAN");
                 OpenAiService service = new OpenAiService(token, Duration.ofSeconds(180));
                 List<ChatMessage> chatMessageList = new ArrayList<>();
@@ -291,7 +293,6 @@ public class OpenAI {
 
 
         private static void getCompletionRequestPrint(String prompt, File classDir, char fileName) {
-                System.out.println(prompt);
                 String token = System.getenv("OPENAI_API_KEY_DEWAN");
                 OpenAiService service = new OpenAiService(token, Duration.ofSeconds(180));
                 List<ChatMessage> chatMessageList = new ArrayList<>();
@@ -310,6 +311,5 @@ public class OpenAI {
                                 .build();
 
                 String result = service.createChatCompletion(completionRequest).getChoices().get(0).getMessage().getContent();
-                System.out.println(result);
         }
 }

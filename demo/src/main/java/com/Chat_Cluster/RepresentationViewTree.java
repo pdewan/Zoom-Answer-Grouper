@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.DirectoryStream;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -16,13 +20,24 @@ import com.Chat_Filter.ZoomChatSegmenter;
 import com.Chat_Filter.ZoomChatSegmenter.SingleChat;
 
 public class RepresentationViewTree {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        try {
+            Path directoryToDelete = Paths.get(System.getProperty("user.home"), "Downloads", "outputs");
+            deleteDirectoryIfExists(directoryToDelete);
+        } catch (IOException e) {
+            System.err.println("Error deleting directory: " + e.getMessage());
+        }
+        try {
+            Path directoryToDelete = Paths.get(System.getProperty("user.home"), "Downloads", "segmentation");
+            deleteDirectoryIfExists(directoryToDelete);
+        } catch (IOException e) {
+            System.err.println("Error deleting directory: " + e.getMessage());
+        }
         QuestionType questionType = new QuestionType();
         PromptChoiceView.promptChoice(questionType);
         GroupParser groupParser = new GroupParser();
         AnswerParser answerParser = new AnswerParser();
         String userRoot = System.getProperty("user.home");
-        System.out.println("userRoot: " + userRoot);
         String rawFilePath = userRoot + "/Downloads/meeting_saved_chat.txt";
         ZoomChatSegmenter.segment(rawFilePath, 2);
         File rootDir = new File(userRoot + "/Downloads");
@@ -63,5 +78,27 @@ public class RepresentationViewTree {
             e.printStackTrace();
         }
 
+    }
+
+        public static void deleteDirectoryIfExists(Path dirPath) throws IOException {
+        if (Files.exists(dirPath)) {
+            // If directory exists, proceed with deleting its contents
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath)) {
+                for (Path entry : stream) {
+                    if (Files.isDirectory(entry)) {
+                        // Recursively delete if it is a directory
+                        deleteDirectoryIfExists(entry);
+                    } else {
+                        // Delete the file
+                        Files.delete(entry);
+                    }
+                }
+            }
+            // After all contents are deleted, delete the directory itself
+            Files.delete(dirPath);
+            System.out.println("Directory and all contents have been deleted.");
+        } else {
+            System.out.println("Directory does not exist, no action taken.");
+        }
     }
 }
