@@ -1,9 +1,10 @@
-package com.Chat_Cluster;
+package com.Chat_View;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.Chat_Filter.ZoomChatSegmenter.SingleChat;
+import com.Chat_Group.StudentGroup;
 
 import java.util.Enumeration;
 import java.util.Hashtable;

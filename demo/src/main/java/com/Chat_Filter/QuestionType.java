@@ -1,4 +1,4 @@
-package com.Chat_Cluster;
+package com.Chat_Filter;
 
 public class QuestionType {
     private String type;

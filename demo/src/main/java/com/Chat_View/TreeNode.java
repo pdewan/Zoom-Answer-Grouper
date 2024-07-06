@@ -1,6 +1,7 @@
-package com.Chat_Cluster;
+package com.Chat_View;
 
 import com.Chat_Filter.ZoomChatSegmenter.SingleChat;
+import com.Chat_Group.StudentGroup;
 
 public class TreeNode {
     private Object userObject;

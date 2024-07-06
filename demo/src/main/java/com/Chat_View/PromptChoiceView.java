@@ -1,6 +1,9 @@
-package com.Chat_Cluster;
+package com.Chat_View;
 
 import javax.swing.*;
+
+import com.Chat_Filter.QuestionType;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedWriter;

@@ -16,10 +16,17 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 
+import com.Chat_Filter.AnswerParser;
+import com.Chat_Filter.LabelController;
+import com.Chat_Filter.QuestionType;
 import com.Chat_Filter.ZoomChatSegmenter;
 import com.Chat_Filter.ZoomChatSegmenter.SingleChat;
+import com.Chat_Group.GroupParser;
+import com.Chat_Group.StudentGroup;
+import com.Chat_View.PromptChoiceView;
+import com.Chat_View.TreeDisplay;
 
-public class RepresentationViewTree {
+public class Main {
     public static void main(String[] args) throws IOException {
         try {
             // Delete existing outputs

@@ -1,4 +1,4 @@
-package com.Chat_Cluster;
+package com.Chat_Filter;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import com.Chat_Filter.ZoomChatSegmenter.SingleChat;
+import com.Chat_Group.StudentGroup;
 
 public class LabelController {
     public static void labelCsvFileGenerator(Hashtable<StudentGroup, List<SingleChat>> groupedAnswersTable) {
