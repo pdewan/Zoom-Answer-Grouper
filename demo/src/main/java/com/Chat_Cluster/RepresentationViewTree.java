@@ -22,12 +22,14 @@ import com.Chat_Filter.ZoomChatSegmenter.SingleChat;
 public class RepresentationViewTree {
     public static void main(String[] args) throws IOException {
         try {
+            // Delete existing outputs
             Path directoryToDelete = Paths.get(System.getProperty("user.home"), "Downloads", "outputs");
             deleteDirectoryIfExists(directoryToDelete);
         } catch (IOException e) {
             System.err.println("Error deleting directory: " + e.getMessage());
         }
         try {
+            // Delete existing segmentations
             Path directoryToDelete = Paths.get(System.getProperty("user.home"), "Downloads", "segmentation");
             deleteDirectoryIfExists(directoryToDelete);
         } catch (IOException e) {
@@ -47,12 +49,16 @@ public class RepresentationViewTree {
             Hashtable<StudentGroup, List<SingleChat>> groupedAnswersTable = new Hashtable<>();
 
             // Map<Integer, StudentGroup> studentGroups = groupParser
-            //         .representationViewParse("data/Zoom-Chats/2023-09-19 12.55.01 Comp 524 Lectures Fall 2023/outputs/2.txt");
+            // .representationViewParse("data/Zoom-Chats/2023-09-19 12.55.01 Comp 524
+            // Lectures Fall 2023/outputs/2.txt");
             // Map<String, String> studentAnswers = answerParser
-            //         .parse("data/Zoom-Chats/2023-09-19 12.55.01 Comp 524 Lectures Fall 2023/segmentation/segment2.txt");
+            // .parse("data/Zoom-Chats/2023-09-19 12.55.01 Comp 524 Lectures Fall
+            // 2023/segmentation/segment2.txt");
 
-            Map<Integer, StudentGroup> studentGroups = groupParser.representationViewParse(rootDir + "/outputs/" + segmentNum + ".txt");
-            Map<String, String> studentAnswers = answerParser.parse(rootDir + "/segmentation/segment" + segmentNum + ".txt");
+            Map<Integer, StudentGroup> studentGroups = groupParser
+                    .representationViewParse(rootDir + "/outputs/" + segmentNum + ".txt");
+            Map<String, String> studentAnswers = answerParser
+                    .parse(rootDir + "/segmentation/segment" + segmentNum + ".txt");
 
             // Go through each parsed student answer and add it to the correct group in the
             // hashtable
@@ -80,7 +86,7 @@ public class RepresentationViewTree {
 
     }
 
-        public static void deleteDirectoryIfExists(Path dirPath) throws IOException {
+    public static void deleteDirectoryIfExists(Path dirPath) throws IOException {
         if (Files.exists(dirPath)) {
             // If directory exists, proceed with deleting its contents
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath)) {
