@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.Chat_Cluster.PropertiesManager;
+
 public class ZoomChatSegmenter {
 
     public static class SingleChat {
@@ -100,52 +102,73 @@ public class ZoomChatSegmenter {
         return segments;
     }
 
-    public static void main(String[] args) {
-        long thresholdMinutes = 2; // Threshold in minutes for segmenting chats
+//    public static void main(String[] args) {
+//        long thresholdMinutes = 2; // Threshold in minutes for segmenting chats
+//
+//        Path startPath = Paths.get("/Users/shanw25/College/Research/DEWAN_Research/Code-Clustering/data/Zoom-Chats");
+//        try (Stream<Path> stream = Files.walk(startPath)) {
+//            stream.filter(Files::isDirectory) // Filter to include only directories
+//                  .forEach(dirPath -> {
+//                    String filePath = dirPath + File.separator + "meeting_saved_chat.txt";
+//                    List<List<SingleChat>> segments = segmentChatLog(filePath, thresholdMinutes);
+//                    saveSegmentationToDir(filePath, segments);
+//                  });
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        // String filePath = "/Users/shanw25/College/Research/DEWAN_Research/Code-Clustering/data/Zoom-Chats/2023-09-19 12.55.01 Comp 524 Lectures Fall 2023/meeting_saved_chat.txt";
+//
+//        // List<List<SingleChat>> segments = segmentChatLog(filePath, thresholdMinutes);
+//        // saveSegmentationToDir(filePath, segments);
+//    }
 
-        Path startPath = Paths.get("/Users/shanw25/College/Research/DEWAN_Research/Code-Clustering/data/Zoom-Chats");
-        try (Stream<Path> stream = Files.walk(startPath)) {
-            stream.filter(Files::isDirectory) // Filter to include only directories
-                  .forEach(dirPath -> {
-                    String filePath = dirPath + File.separator + "meeting_saved_chat.txt";
-                    List<List<SingleChat>> segments = segmentChatLog(filePath, thresholdMinutes);
-                    saveSegmentationToDir(filePath, segments);
-                  });
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static File segment(String filePath, long thresholdMinutes) {
+    	String directoryPath = Paths.get(filePath).getParent().toString();
+        String segmentationDirPath = directoryPath + File.separator + "segmentation";
+        String anActualSegmentationDirPath = PropertiesManager.getSegmentationDirectory(segmentationDirPath);
+        File segmentationDir = new File(anActualSegmentationDirPath);
+        if (segmentationDir.exists()) {
+        	System.out.println("Segmentation exists, not making segments");
+            return segmentationDir;
+        } else {
+            segmentationDir.mkdirs(); // Create the directory if it doesn't exist
+
         }
-
-        // String filePath = "/Users/shanw25/College/Research/DEWAN_Research/Code-Clustering/data/Zoom-Chats/2023-09-19 12.55.01 Comp 524 Lectures Fall 2023/meeting_saved_chat.txt";
-
-        // List<List<SingleChat>> segments = segmentChatLog(filePath, thresholdMinutes);
-        // saveSegmentationToDir(filePath, segments);
-    }
-
-    public static void segment(String filePath, long thresholdMinutes) {
         List<List<SingleChat>> segments = segmentChatLog(filePath, thresholdMinutes);
-        saveSegmentationToDir(filePath, segments);
+        saveSegmentationToDir(segmentationDir, segments);
+        return segmentationDir;
     }
 
-    private static void saveSegmentationToDir(String filePath, List<List<SingleChat>> segments) {
+    private static void saveSegmentationToDir(/*String filePath,*/ File segmentationDir, List<List<SingleChat>> segments) {
         // Get the directory of the file path and create a new directory named
         // "segmentation"
-        String directoryPath = Paths.get(filePath).getParent().toString();
-        String segmentationDirPath = directoryPath + File.separator + "segmentation";
-        File segmentationDir = new File(segmentationDirPath);
-        if (!segmentationDir.exists()) {
-            segmentationDir.mkdirs(); // Create the directory if it doesn't exist
-        }
+//        String directoryPath = Paths.get(filePath).getParent().toString();
+//        String segmentationDirPath = directoryPath + File.separator + "segmentation";
+//        File segmentationDir = new File(segmentationDirPath);
+//        String directoryPath = Paths.get(filePath).getParent().toString();
+//        String segmentationDirPath = directoryPath + File.separator + "segmentation";
+//        String anActualSegmentationDirPath = PropertiesManager.getSegmentationDirectory(segmentationDirPath);
+//        File segmentationDir = new File(segmentationDirPath);
+//
+//        if (!segmentationDir.exists()) {
+//            segmentationDir.mkdirs(); // Create the directory if it doesn't exist
+//        }
 
-        try{
-            boolean hasFile = Files.list(Paths.get(segmentationDirPath)).findAny().isPresent();
-            if(hasFile){
-                System.out.println(directoryPath + " already has a segmentation files");
-                return;
-            }
-        }catch(IOException e){
-            e.printStackTrace();
-        }
+//        try{
+//        	Path segmentationDirPath = Paths.get(segmentationDir.getAbsolutePath());
+//
+//            boolean hasFile = Files.list(Paths.get(segmentationDirPath)).findAny().isPresent();
+//            if(hasFile){
+//                System.out.println(directoryPath + " already has a segmentation files");
+//                return segmentationDir;
+//            }
+//        }catch(IOException e){
+//            e.printStackTrace();
+//        }
         // Save each segment to a separate text file
+    	String segmentationDirPath = segmentationDir.getAbsolutePath();
+
         for (int i = 0; i < segments.size(); i++) {
             String segmentFileName = segmentationDirPath + File.separator + "segment" + (i + 1) + ".txt";
             try (FileWriter writer = new FileWriter(segmentFileName)) {
