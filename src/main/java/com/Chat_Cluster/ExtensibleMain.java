@@ -1,5 +1,6 @@
 package com.Chat_Cluster;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +77,8 @@ public class ExtensibleMain {
 		return aChatFiles;
 	}
 
+	static boolean showTreeView = false;
+
 	public static void main(String[] args) throws IOException {
 		Path aConfigurationPath = PropertiesManager.getConfigurationFilePath();
 		PropertiesConfiguration aPropertiesConfiguration = null;
@@ -114,6 +117,10 @@ public class ExtensibleMain {
 
 		PromptsFileManagerFactory.getPromptsManager().processPromptFiles(aPromptsDirectory);
 		PromptsChoiceManagerFactory.getPromptChoiceManager().setPromptChoice(aPromptsDirectory, questionType);
+		if (questionType.getType() == null) {
+			System.err.println("No prompt choice taken");
+			System.exit(-1);
+		}
 //        PromptChoiceView.promptChoice(questionType);
 		GroupParser groupParser = new GroupParser();
 		AnswerParser answerParser = new AnswerParser();
@@ -123,59 +130,69 @@ public class ExtensibleMain {
 		List<String> rawFilePaths = getChatFileNames();
 		for (String rawFilePath : rawFilePaths) {
 			File aParentFolder = ZoomChatSegmenter.segment(rawFilePath, 2);
-			List<File> aSegmentationFiles = ChatSegmentsFinderFactory.getSegmentFilesFinder().findChildren(aParentFolder);
-			for (File aSegmentationFile:aSegmentationFiles) {
+			List<File> aSegmentationFiles = ChatSegmentsFinderFactory.getSegmentFilesFinder()
+					.findChildren(aParentFolder);
+			for (File aSegmentationFile : aSegmentationFiles) {
 //			File rootDir = new File(userRoot + "/Downloads");
 //			int segmentNum = OpenAI.getGPTAnswerForNewestSegmentation(rootDir, questionType);
-			Path anOutputFilePath = ExtensibleOpenAI.getGPTAnswerForSegmentation(aSegmentationFile, aPromptsDirectory, questionType);
-			try {
-				// Parse groups and answers from the files
-				Hashtable<StudentGroup, List<SingleChat>> groupedAnswersTable = new Hashtable<>();
+				if (PropertiesManager.getShowChat()) {
 
-				// Map<Integer, StudentGroup> studentGroups = groupParser
-				// .representationViewParse("data/Zoom-Chats/2023-09-19 12.55.01 Comp 524
-				// Lectures Fall 2023/outputs/2.txt");
-				// Map<String, String> studentAnswers = answerParser
-				// .parse("data/Zoom-Chats/2023-09-19 12.55.01 Comp 524 Lectures Fall
-				// 2023/segmentation/segment2.txt");
-				
+				Desktop.getDesktop().edit(aSegmentationFile);
+				}
+
+				Path anOutputFilePath = ExtensibleOpenAI.getGPTAnswerForSegmentation(aSegmentationFile,
+						aPromptsDirectory, questionType);
+				Desktop.getDesktop().edit(anOutputFilePath.toFile());
+				if (!showTreeView) {
+					continue;
+				}
+				try {
+					// Parse groups and answers from the files
+					Hashtable<StudentGroup, List<SingleChat>> groupedAnswersTable = new Hashtable<>();
+
+					// Map<Integer, StudentGroup> studentGroups = groupParser
+					// .representationViewParse("data/Zoom-Chats/2023-09-19 12.55.01 Comp 524
+					// Lectures Fall 2023/outputs/2.txt");
+					// Map<String, String> studentAnswers = answerParser
+					// .parse("data/Zoom-Chats/2023-09-19 12.55.01 Comp 524 Lectures Fall
+					// 2023/segmentation/segment2.txt");
+
 //				aSegmentationFile.getAbsolutePath();
 
-				Map<Integer, StudentGroup> studentGroups = groupParser
-						.representationViewParse(anOutputFilePath.toString());
-				Map<String, String> studentAnswers = answerParser
-						.parse(aSegmentationFile.getAbsolutePath());
+					Map<Integer, StudentGroup> studentGroups = groupParser
+							.representationViewParse(anOutputFilePath.toString());
+					Map<String, String> studentAnswers = answerParser.parse(aSegmentationFile.getAbsolutePath());
 //				
 //				Map<Integer, StudentGroup> studentGroups = groupParser
 //						.representationViewParse(rootDir + "/outputs/" + segmentNum + ".txt");
 //				Map<String, String> studentAnswers = answerParser
 //						.parse(rootDir + "/segmentation/segment" + segmentNum + ".txt");
-				
 
-				// Go through each parsed student answer and add it to the correct group in the
-				// hashtable
-				for (Map.Entry<Integer, StudentGroup> groupEntry : studentGroups.entrySet()) {
-					StudentGroup group = groupEntry.getValue();
-					for (Map.Entry<String, String> studentAnswer : studentAnswers.entrySet()) {
-						if (group.getStudents().contains(studentAnswer.getKey())) {
-							groupedAnswersTable.putIfAbsent(group, new ArrayList());
-							SingleChat chat = new SingleChat(null, studentAnswer.getKey(), studentAnswer.getValue());
-							groupedAnswersTable.get(group).add(chat);
+					// Go through each parsed student answer and add it to the correct group in the
+					// hashtable
+					for (Map.Entry<Integer, StudentGroup> groupEntry : studentGroups.entrySet()) {
+						StudentGroup group = groupEntry.getValue();
+						for (Map.Entry<String, String> studentAnswer : studentAnswers.entrySet()) {
+							if (group.getStudents().contains(studentAnswer.getKey())) {
+								groupedAnswersTable.putIfAbsent(group, new ArrayList());
+								SingleChat chat = new SingleChat(null, studentAnswer.getKey(),
+										studentAnswer.getValue());
+								groupedAnswersTable.get(group).add(chat);
+							}
 						}
 					}
+					// Instantiate and populate your Hashtable<StudentGroup, List<SingleChat>>
+					// Hashtable<StudentGroup, List<SingleChat>> chatData = new Hashtable<>();
+					// (Add data to chatData as necessary)
+
+					// Build the JTree with the chat data
+					new TreeDisplay(groupedAnswersTable);
+					LabelController.labelCsvFileGenerator(groupedAnswersTable);
+
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-				// Instantiate and populate your Hashtable<StudentGroup, List<SingleChat>>
-				// Hashtable<StudentGroup, List<SingleChat>> chatData = new Hashtable<>();
-				// (Add data to chatData as necessary)
-
-				// Build the JTree with the chat data
-				new TreeDisplay(groupedAnswersTable);
-				LabelController.labelCsvFileGenerator(groupedAnswersTable);
-
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
-		}
 		}
 
 	}

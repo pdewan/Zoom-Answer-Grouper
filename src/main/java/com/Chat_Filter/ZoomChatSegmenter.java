@@ -128,7 +128,7 @@ public class ZoomChatSegmenter {
         String segmentationDirPath = directoryPath + File.separator + "segmentation";
         String anActualSegmentationDirPath = PropertiesManager.getSegmentationDirectory(segmentationDirPath);
         File segmentationDir = new File(anActualSegmentationDirPath);
-        if (segmentationDir.exists()) {
+        if (segmentationDir.exists() && !PropertiesManager.getResegment()) {
         	System.out.println("Segmentation exists, not making segments");
             return segmentationDir;
         } else {

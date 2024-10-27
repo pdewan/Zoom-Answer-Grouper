@@ -14,6 +14,7 @@ import java.util.Objects;
 
 public class BasicPromptChoiceManager implements PromptChoiceManager 
 {
+	private static final String GENERIC_PROMPT = "Below you see responses from multiple students for a particula. Firstly, try to predict the question asked to the students. Then, try to cluster similar response to create groups where each group contains only the responses which are similar to each other. HIghlight the answers that are particularly different from the others as these may be mistakes or exceptionally good answers that need to be discussed.";
     // Default content for the text files
     private static final String FACTUAL_PROMPT = "As a teaching assistant in an advanced programming language course, your task is to cluster students' answers to a factual question asked in the class. First, find all the unique answers. Answers with similar content but different format aren't unique. Second, group similar answers to the same group. Third, for each group, find a representation answer. The representation answer must contains all the points of other answers within that group. Fourth, make the representation answer be the first one in the group. You could put one student in one group if their answer is unique. Notice, the students answered the question via Zoom chat. Therefore, it will be in the format of Zoom chat.\n"
     + //

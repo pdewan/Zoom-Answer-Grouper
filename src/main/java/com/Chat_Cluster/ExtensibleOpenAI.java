@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -206,6 +207,10 @@ public class ExtensibleOpenAI {
 
         	// Read all bytes from the file
             byte[] fileBytes = Files.readAllBytes(aPromptsFilePath);
+            
+            if (PropertiesManager.getShowPrompt()) {
+            	Desktop.getDesktop().edit(aPromptsFilePath.toFile());
+            }
 
             // Convert the bytes to a String
             String targetPrompt = new String(fileBytes, StandardCharsets.UTF_8);
@@ -233,10 +238,10 @@ public class ExtensibleOpenAI {
                 for (String line : lines) {
                         tempPrompt += line + "\n";
                 }
-                Desktop.getDesktop().edit(aSegmentationFile);
+//                Desktop.getDesktop().edit(aSegmentationFile);
 
 //                String fileName = String.valueOf(retVal);
-                return getNewCompletionRequest(aPrologPrompt,tempPrompt, epilogPrompt, aSegmentationFile);
+                return getNewCompletionRequest(type, aPrologPrompt,tempPrompt, epilogPrompt, aSegmentationFile);
         } catch (IOException e) {
                 e.printStackTrace();
         }
@@ -346,7 +351,7 @@ public class ExtensibleOpenAI {
         	}
         	return retVal.toString();
         }
-        private static Path getNewCompletionRequest(String prologPrompt, String prompt, String epilogPrompt, File aSegmentationFile) {
+        private static Path getNewCompletionRequest(QuestionType aQuestionType, String prologPrompt, String prompt, String epilogPrompt, File aSegmentationFile) {
             String token = System.getenv("OPENAI_API_KEY_DEWAN");
             OpenAiService service = new OpenAiService(token, Duration.ofSeconds(180));
             List<ChatMessage> chatMessageList = new ArrayList<>();
@@ -365,6 +370,9 @@ public class ExtensibleOpenAI {
         
 //            String aChatString = toString(chatMessageList);
             
+            long aStartTime = System.currentTimeMillis();
+            
+            
             ChatCompletionRequest completionRequest = ChatCompletionRequest
                             .builder()
                             .model("gpt-4-1106-preview")
@@ -373,19 +381,30 @@ public class ExtensibleOpenAI {
                             .stop(null)
                             .temperature(0.0)
                             .build();
+            
+         
 
             String result = service.createChatCompletion(completionRequest).getChoices().get(0).getMessage().getContent();
+            long anEndTime = System.currentTimeMillis();
+            long aTimeTaken = anEndTime - aStartTime;
+            String aTimeTakenString =
+            		String.format("%d min, %d sec", 
+            			    TimeUnit.MILLISECONDS.toMinutes(aTimeTaken),
+            			    TimeUnit.MILLISECONDS.toSeconds(aTimeTaken) - 
+            			    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(aTimeTaken))
+            			);
             File aChatFolder = aSegmentationFile.getParentFile().getParentFile();
             
             String aChatLocalName = aChatFolder.getName();
             String aSegmentationLocalName = aSegmentationFile.getName();
+            
             Path defaultDirPath = Paths.get(aChatFolder.getAbsolutePath()  + "/outputs/");
             String outputDirName = PropertiesManager.getOutputsDirectory(defaultDirPath.toString());
             Path outputDirPath = Paths.get(outputDirName);
             
             
 
-            Path anOutputFilePath = Paths.get(outputDirPath.toString() + "/" + aSegmentationLocalName + "_processed.txt");
+            Path anOutputFilePath = Paths.get(outputDirPath.toString() + "/" + aQuestionType.getType() + "_" + aSegmentationLocalName);
             if(!Files.exists(outputDirPath)){
                     try{
                             Files.createDirectory(outputDirPath);
@@ -394,9 +413,12 @@ public class ExtensibleOpenAI {
                     }
             }
             try{
+            	     if (!anOutputFilePath.toFile().exists()) {
+            	    	
                      Files.createFile(anOutputFilePath);
+            	     }
                     FileWriter writer = new FileWriter(anOutputFilePath.toString());
-                    writer.write(result);
+                    writer.write(aTimeTakenString + "\n" + result);
                     writer.close();
                     return anOutputFilePath;
                     

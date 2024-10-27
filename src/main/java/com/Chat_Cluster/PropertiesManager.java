@@ -8,6 +8,12 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
 public class PropertiesManager {
+	private static final String SHOW_CHAT = "ShowChat";
+	private static boolean DEFAULT_SHOW_CHAT = true;
+	private static final String RESEGMENT = "Resegment";
+	private static boolean DEFAULT_RESEGMENT = true;
+	private static String SHOW_PROMPT = "ShowPrompt";
+	private static boolean DEFAULT_SHOW_PROMPT = false;
 	private static final String LATEST_CHAT = "LatestChat";
 	private static final boolean DEFAULT_LATEST_CHAT = true;
 	private static final String DOCUMENTS = "Documents";
@@ -66,6 +72,15 @@ public class PropertiesManager {
 	}
 	public static boolean getLatestChat() {
 		return propertiesConfiguration.getBoolean(LATEST_CHAT, DEFAULT_LATEST_CHAT);
+	}
+	public static boolean getResegment() {
+		return propertiesConfiguration.getBoolean(RESEGMENT, DEFAULT_RESEGMENT);
+	}
+	public static boolean getShowChat() {
+		return propertiesConfiguration.getBoolean(SHOW_CHAT, DEFAULT_SHOW_CHAT);
+	}
+	public static boolean getShowPrompt() {
+		return propertiesConfiguration.getBoolean(SHOW_PROMPT, DEFAULT_SHOW_PROMPT);
 	}
 	
 }
