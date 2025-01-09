@@ -14,93 +14,161 @@ import com.Chat_Cluster.PropertiesManager;
 
 public class ZoomChatSegmenter {
 
-    public static class SingleChat {
-        public LocalTime time;
-        public String personName;
-        public String message;
+	public static class SingleChat {
+		public LocalTime time;
+		public String personName;
+		public String message;
 
-        public SingleChat(LocalTime time, String personName, String message) {
-            this.time = time;
-            this.personName = personName;
-            this.message = message;
-        }
+		public SingleChat(LocalTime time, String personName, String message) {
+			this.time = time;
+			this.personName = personName;
+			this.message = message;
+		}
 
-        public LocalTime getTime() {
-            return time;
-        }
+		public LocalTime getTime() {
+			return time;
+		}
 
-        public void setTime(LocalTime time) {
-            this.time = time;
-        }
+		public void setTime(LocalTime time) {
+			this.time = time;
+		}
 
-        public String getPersonName() {
-            return personName;
-        }
+		public String getPersonName() {
+			return personName;
+		}
 
-        public void setPersonName(String personName) {
-            this.personName = personName;
-        }
+		public void setPersonName(String personName) {
+			this.personName = personName;
+		}
 
-        public String getMessage() {
-            return message;
-        }
+		public String getMessage() {
+			return message;
+		}
 
-        public void setMessage(String message) {
-            this.message = message;
-        }
+		public void setMessage(String message) {
+			this.message = message;
+		}
 
-        @Override
-        public String toString() {
-            return time + " From " + personName + ": " + message;
-        }
-    }
+		@Override
+		public String toString() {
+			return time + " From " + personName + ": " + message;
+		}
+	}
 
-    public static List<List<SingleChat>> segmentChatLog(String filePath, long thresholdMinutes) {
-        List<List<SingleChat>> segments = new ArrayList<>();
-        List<SingleChat> currentSegment = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            LocalTime lastTime = null;
-            String lastPersonName = "";
-            StringBuilder messageBuilder = new StringBuilder();
-            boolean isMessageStart = true; // Flag to indicate if we're at the start of a new message
+	public static List<List<SingleChat>> segmentChatLog(String filePath, long thresholdMinutes) {
+		List<List<SingleChat>> segments = new ArrayList<>();
+		List<SingleChat> currentSegment = new ArrayList<>();
+		try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+			String line;
+			LocalTime lastTime = null;
+			String lastPersonName = "";
+			StringBuilder messageBuilder = new StringBuilder();
+			boolean isMessageStart = true; // Flag to indicate if we're at the start of a new message
+			boolean currentSegmentIsInstructor = false;
+			boolean currentChatIsInstructor = false;
 
-            while ((line = br.readLine()) != null) {
-                if (line.matches("\\d{2}:\\d{2}:\\d{2} From .* [Tt]o Everyone:")) {
-                    if (messageBuilder.length() > 0) { // If there's a message, add it before processing a new header
-                        SingleChat chat = new SingleChat(lastTime, lastPersonName, messageBuilder.toString().trim());
-                        if (lastTime != null && !currentSegment.isEmpty()
-                                && ChronoUnit.MINUTES.between(currentSegment.get(currentSegment.size() - 1).time,
-                                        chat.time) > thresholdMinutes) {
-                            segments.add(new ArrayList<>(currentSegment));
-                            currentSegment.clear();
-                        }
-                        currentSegment.add(chat);
-                        messageBuilder = new StringBuilder(); // Reset the message builder
-                    }
-                    String[] headerParts = line.split(" From | [Tt]o Everyone:");
-                    lastTime = LocalTime.parse(headerParts[0].trim());
-                    lastPersonName = headerParts[1].trim();
-                    isMessageStart = false; // After setting the header, the next lines are part of the message
-                } else if (!isMessageStart) {
-                    // If the line is part of a message, append it
-                    messageBuilder.append(line).append("\n");
-                }
-            }
-            // Add the last chat message if exists
-            if (messageBuilder.length() > 0) {
-                SingleChat chat = new SingleChat(lastTime, lastPersonName, messageBuilder.toString().trim());
-                currentSegment.add(chat);
-            }
-            // Don't forget to add the last segment
-            if (!currentSegment.isEmpty()) {
-                segments.add(currentSegment);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return segments;
-    }
+			while ((line = br.readLine()) != null) {
+
+				if (line.matches("\\d{2}:\\d{2}:\\d{2} From .* [Tt]o .*:")) {
+					if (messageBuilder.length() > 0) { // If there's a message, add it before processing a new header
+						SingleChat chat = new SingleChat(lastTime, lastPersonName, messageBuilder.toString().trim());
+//						if (lastTime != null && 
+//								!currentSegment.isEmpty() && 
+//								(!currentSegmentIsInstructor || currentChatIsInstructor) // do not use gap of time in that case
+//								&& (currentChatIsInstructor	// ignore time gap									
+//										|| ChronoUnit.MINUTES.between(
+//										currentSegment.get(currentSegment.size() - 1).time,
+//										chat.time) > thresholdMinutes)) {
+						if (lastTime != null && !currentSegment.isEmpty()) {
+							boolean timeGap = ChronoUnit.MINUTES.between(
+									currentSegment.get(currentSegment.size() - 1).time, chat.time) > thresholdMinutes;
+							boolean aStartNewSegment = currentChatIsInstructor
+									|| (!currentSegmentIsInstructor && timeGap);
+
+							if (aStartNewSegment) {
+								segments.add(new ArrayList<>(currentSegment));
+								currentSegment.clear();
+								currentSegmentIsInstructor = currentChatIsInstructor;
+								
+							}
+
+						}
+						currentSegment.add(chat);
+						messageBuilder = new StringBuilder(); // Reset the message builder
+					}
+					String[] headerParts = line.split(" From | [Tt]o .*:");
+					lastTime = LocalTime.parse(headerParts[0].trim());
+					lastPersonName = headerParts[1].trim();
+					currentChatIsInstructor = lastPersonName.contains("Dewan");
+
+					isMessageStart = false; // After setting the header, the next lines are part of the message
+				} else if (!isMessageStart) {
+					// If the line is part of a message, append it
+					messageBuilder.append(line).append("\n");
+				}
+			}
+			// Add the last chat message if exists
+			if (messageBuilder.length() > 0) {
+				SingleChat chat = new SingleChat(lastTime, lastPersonName, messageBuilder.toString().trim());
+				currentSegment.add(chat);
+			}
+			// Don't forget to add the last segment
+			if (!currentSegment.isEmpty()) {
+				segments.add(currentSegment);
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return segments;
+	}
+
+//	public static List<List<SingleChat>> segmentChatLog(String filePath, long thresholdMinutes) {
+//		List<List<SingleChat>> segments = new ArrayList<>();
+//		List<SingleChat> currentSegment = new ArrayList<>();
+//		try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+//			String line;
+//			LocalTime lastTime = null;
+//			String lastPersonName = "";
+//			StringBuilder messageBuilder = new StringBuilder();
+//			boolean isMessageStart = true; // Flag to indicate if we're at the start of a new message
+//
+//			while ((line = br.readLine()) != null) {
+//				if (line.matches("\\d{2}:\\d{2}:\\d{2} From .* [Tt]o Everyone:")) {
+//					if (messageBuilder.length() > 0) { // If there's a message, add it before processing a new header
+//						SingleChat chat = new SingleChat(lastTime, lastPersonName, messageBuilder.toString().trim());
+//						if (lastTime != null && !currentSegment.isEmpty()
+//								&& ChronoUnit.MINUTES.between(currentSegment.get(currentSegment.size() - 1).time,
+//										chat.time) > thresholdMinutes) {
+//							segments.add(new ArrayList<>(currentSegment));
+//							currentSegment.clear();
+//						}
+//						currentSegment.add(chat);
+//						messageBuilder = new StringBuilder(); // Reset the message builder
+//					}
+//					String[] headerParts = line.split(" From | [Tt]o Everyone:");
+//					lastTime = LocalTime.parse(headerParts[0].trim());
+//					lastPersonName = headerParts[1].trim();
+//					isMessageStart = false; // After setting the header, the next lines are part of the message
+//				} else if (!isMessageStart) {
+//					// If the line is part of a message, append it
+//					messageBuilder.append(line).append("\n");
+//				}
+//			}
+//			// Add the last chat message if exists
+//			if (messageBuilder.length() > 0) {
+//				SingleChat chat = new SingleChat(lastTime, lastPersonName, messageBuilder.toString().trim());
+//				currentSegment.add(chat);
+//			}
+//			// Don't forget to add the last segment
+//			if (!currentSegment.isEmpty()) {
+//				segments.add(currentSegment);
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		return segments;
+//	}
 
 //    public static void main(String[] args) {
 //        long thresholdMinutes = 2; // Threshold in minutes for segmenting chats
@@ -123,26 +191,27 @@ public class ZoomChatSegmenter {
 //        // saveSegmentationToDir(filePath, segments);
 //    }
 
-    public static File segment(String filePath, long thresholdMinutes) {
-    	String directoryPath = Paths.get(filePath).getParent().toString();
-        String segmentationDirPath = directoryPath + File.separator + "segmentation";
-        String anActualSegmentationDirPath = PropertiesManager.getSegmentationDirectory(segmentationDirPath);
-        File segmentationDir = new File(anActualSegmentationDirPath);
-        if (segmentationDir.exists() && !PropertiesManager.getResegment()) {
-        	System.out.println("Segmentation exists, not making segments");
-            return segmentationDir;
-        } else {
-            segmentationDir.mkdirs(); // Create the directory if it doesn't exist
+	public static File segment(String filePath, long thresholdMinutes) {
+		String directoryPath = Paths.get(filePath).getParent().toString();
+		String segmentationDirPath = directoryPath + File.separator + "segmentation";
+		String anActualSegmentationDirPath = PropertiesManager.getSegmentationDirectory(segmentationDirPath);
+		File segmentationDir = new File(anActualSegmentationDirPath);
+		if (segmentationDir.exists() && !PropertiesManager.getResegment()) {
+			System.out.println("Segmentation exists, not making segments");
+			return segmentationDir;
+		} else {
+			segmentationDir.mkdirs(); // Create the directory if it doesn't exist
 
-        }
-        List<List<SingleChat>> segments = segmentChatLog(filePath, thresholdMinutes);
-        saveSegmentationToDir(segmentationDir, segments);
-        return segmentationDir;
-    }
+		}
+		List<List<SingleChat>> segments = segmentChatLog(filePath, thresholdMinutes);
+		saveSegmentationToDir(segmentationDir, segments);
+		return segmentationDir;
+	}
 
-    private static void saveSegmentationToDir(/*String filePath,*/ File segmentationDir, List<List<SingleChat>> segments) {
-        // Get the directory of the file path and create a new directory named
-        // "segmentation"
+	private static void saveSegmentationToDir(/* String filePath, */ File segmentationDir,
+			List<List<SingleChat>> segments) {
+		// Get the directory of the file path and create a new directory named
+		// "segmentation"
 //        String directoryPath = Paths.get(filePath).getParent().toString();
 //        String segmentationDirPath = directoryPath + File.separator + "segmentation";
 //        File segmentationDir = new File(segmentationDirPath);
@@ -166,19 +235,19 @@ public class ZoomChatSegmenter {
 //        }catch(IOException e){
 //            e.printStackTrace();
 //        }
-        // Save each segment to a separate text file
-    	String segmentationDirPath = segmentationDir.getAbsolutePath();
+		// Save each segment to a separate text file
+		String segmentationDirPath = segmentationDir.getAbsolutePath();
 
-        for (int i = 0; i < segments.size(); i++) {
-            String segmentFileName = segmentationDirPath + File.separator + "segment" + (i + 1) + ".txt";
-            try (FileWriter writer = new FileWriter(segmentFileName)) {
-                for (SingleChat chat : segments.get(i)) {
-                    writer.write(chat.toString() + "\n\n");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Chat segments have been saved to " + segmentationDirPath);
-    }
+		for (int i = 0; i < segments.size(); i++) {
+			String segmentFileName = segmentationDirPath + File.separator + "segment" + (i + 1) + ".txt";
+			try (FileWriter writer = new FileWriter(segmentFileName)) {
+				for (SingleChat chat : segments.get(i)) {
+					writer.write(chat.toString() + "\n\n");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println("Chat segments have been saved to " + segmentationDirPath);
+	}
 }
