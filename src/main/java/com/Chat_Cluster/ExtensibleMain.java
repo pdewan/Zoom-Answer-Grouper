@@ -42,6 +42,8 @@ public class ExtensibleMain {
 	private static final String PROMPTS_DIRECTORY = "Prompts";
 	private static final String ZOOM_DIRECTORY = "Zoom";
 	private static final String CHAT_FILE_NAME = "meeting_saved_chat.txt";
+	private static final String CHAT_FILE_NAME_SUFFIX = "chat.txt";
+
 	private static final String CONFIGURATION_FILE_NAME = "config.properties";
 
 	private static Path getZoomChatDirectory() {
@@ -71,8 +73,15 @@ public class ExtensibleMain {
 		List<File> aChatFolders = ChatFoldersFinderFactory.getChatFolderFinder().findChildren(aParentFolder);
 		List<String> aChatFiles = new ArrayList();
 		for (File aChatFolder : aChatFolders) {
-			String aChatFileName = aChatFolder.getAbsolutePath() + "/" + CHAT_FILE_NAME;
-			aChatFiles.add(aChatFileName);
+			File[] aChildren = aChatFolder.listFiles();
+			for (File aChild:aChildren) {
+				String aChildName = aChild.getName();
+				if (aChildName.endsWith(CHAT_FILE_NAME_SUFFIX)) {
+					aChatFiles.add(aChild.getAbsolutePath());
+				}
+			}
+//			String aChatFileName = aChatFolder.getAbsolutePath() + "/" + CHAT_FILE_NAME;
+//			aChatFiles.add(aChatFileName);
 		}
 		return aChatFiles;
 	}
@@ -88,7 +97,7 @@ public class ExtensibleMain {
 				aPropertiesConfiguration = new PropertiesConfiguration(aConfigurationFile);
 			} catch (Exception e) {
 				aPropertiesConfiguration = new PropertiesConfiguration();
-			}
+			} 
 		} else {
 			aPropertiesConfiguration = new PropertiesConfiguration();
 		}
