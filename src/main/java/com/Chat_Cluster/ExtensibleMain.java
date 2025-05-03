@@ -66,25 +66,57 @@ public class ExtensibleMain {
 	private static Path getPromptsDirectoryPath() {
 		return Paths.get(getAnswerDirectoryPath().toString(), PROMPTS_DIRECTORY);
 	}
-
-	private static List<String> getChatFileNames() {
+    public static File getChatFile(File aChatFolder) {
+    	File[] aChildren = aChatFolder.listFiles();
+		for (File aChild:aChildren) {
+			String aChildName = aChild.getName();
+			if (aChildName.endsWith(CHAT_FILE_NAME_SUFFIX)) {
+				return aChild;
+			}
+		}
+		return null;
+    }
+//	private static List<String> getChatFileNames() {
+////		File aParentFolder = getZoomChatDirectory().toFile();
+//		File aParentFolder = PropertiesManager.getZoomChatDirectory().toFile();
+//		List<File> aChatFolders = ChatFoldersFinderFactory.getChatFolderFinder().findChildren(aParentFolder);
+//		List<String> aChatFiles = new ArrayList();
+//		for (File aChatFolder : aChatFolders) {
+//			File[] aChildren = aChatFolder.listFiles();
+//			for (File aChild:aChildren) {
+//				String aChildName = aChild.getName();
+//				if (aChildName.endsWith(CHAT_FILE_NAME_SUFFIX)) {
+//					aChatFiles.add(aChild.getAbsolutePath());
+//				}
+//			}
+////			String aChatFileName = aChatFolder.getAbsolutePath() + "/" + CHAT_FILE_NAME;
+////			aChatFiles.add(aChatFileName);
+//		}
+//		return aChatFiles;
+//	}
+    private static List<String> getChatFileNames() {
 //		File aParentFolder = getZoomChatDirectory().toFile();
 		File aParentFolder = PropertiesManager.getZoomChatDirectory().toFile();
 		List<File> aChatFolders = ChatFoldersFinderFactory.getChatFolderFinder().findChildren(aParentFolder);
 		List<String> aChatFiles = new ArrayList();
 		for (File aChatFolder : aChatFolders) {
-			File[] aChildren = aChatFolder.listFiles();
-			for (File aChild:aChildren) {
-				String aChildName = aChild.getName();
-				if (aChildName.endsWith(CHAT_FILE_NAME_SUFFIX)) {
-					aChatFiles.add(aChild.getAbsolutePath());
-				}
+			File aChatFile = getChatFile(aChatFolder);
+			if (aChatFile != null) {
+				aChatFiles.add(aChatFile.getAbsolutePath());
 			}
+//			File[] aChildren = aChatFolder.listFiles();
+//			for (File aChild:aChildren) {
+//				String aChildName = aChild.getName();
+//				if (aChildName.endsWith(CHAT_FILE_NAME_SUFFIX)) {
+//					aChatFiles.add(aChild.getAbsolutePath());
+//				}
+//			}
 //			String aChatFileName = aChatFolder.getAbsolutePath() + "/" + CHAT_FILE_NAME;
 //			aChatFiles.add(aChatFileName);
 		}
 		return aChatFiles;
 	}
+	
 
 	static boolean showTreeView = false;
 
