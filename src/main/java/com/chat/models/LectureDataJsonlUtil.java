@@ -104,6 +104,14 @@ public class LectureDataJsonlUtil {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.writeValue(outputFile, lectureModels);
     }
+    
+    public static void exportBasicLectureDataToJson(List<LectureData> lectureDataList, File outputFile) throws IOException {
+        List<LectureDataModel> lectureModels = toLectureDataModels(lectureDataList); 
+        List<BasicLectureDataModel> basicLectureModels = toBasicLectureDataModels(lectureModels);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.writeValue(outputFile, basicLectureModels);
+    }
 	
 //    public static void exportLectureDataToJson(List<LectureData> lectureDataList, File outputFile) throws IOException {
 //        List<LectureDataModel> lectureModels = new ArrayList<>();

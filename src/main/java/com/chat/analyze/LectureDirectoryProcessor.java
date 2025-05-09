@@ -2,6 +2,7 @@ package com.chat.analyze;
 
 import java.io.File;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -186,10 +187,20 @@ public class LectureDirectoryProcessor {
 	}
 	
 
-	private static final String QA_FileName = "data/lecture_model.JSON";
-	public static void main(String[] args) throws IOException {
-	    File chatDir = new File("G:\\My Drive\\533Shared\\s25\\Lectures");
-//	    File chatDir = new File("G:\\My Drive\\524Shared\\F24\\Lectures");
+//	private static final String QA_FileName = "data/lecture_model.JSON";
+//	private static final String QA_FileName = "data/533_lecture_model.JSON";
+	private static final String QA_FileName = "data/524_lecture_model.JSON";
+
+
+//	private static final String BASIC_QA_FILE_NAME = "data/basic_lecture_model.JSON";
+//	private static final String BASIC_QA_FILE_NAME = "data/533_basic_lecture_model.JSON";
+	private static final String BASIC_QA_FILE_NAME = "data/524_basic_lecture_model.JSON";
+
+
+	
+	public static void writeQA() throws Exception {
+//		File chatDir = new File("G:\\My Drive\\533Shared\\s25\\Lectures");
+	    File chatDir = new File("G:\\My Drive\\524Shared\\F24\\Lectures");
 	    File anOutputFile = new File(QA_FileName);
 	    
 	    List<LectureData> aLecturesData = processLecturesDirectory(chatDir);
@@ -207,6 +218,53 @@ public class LectureDirectoryProcessor {
 
 	    // Print or save the results
 //	    allStats.forEach(System.out::println);
+	}
+	
+	
+	public static void writeBasicQA() throws Exception {
+//		File chatDir = new File("G:\\My Drive\\533Shared\\s25\\Lectures");
+	    File chatDir = new File("G:\\My Drive\\524Shared\\F24\\Lectures");
+	    File anOutputFile = new File(BASIC_QA_FILE_NAME);
+	    
+	    List<LectureData> aLecturesData = processLecturesDirectory(chatDir);
+	    if (!anOutputFile.exists()) {
+		    anOutputFile.createNewFile();
+		    }
+	    LectureDataJsonlUtil.exportBasicLectureDataToJson(aLecturesData, anOutputFile);
+//	    System.out.println(aLecturesData);
+	    
+//	    List<File> pptFiles = findPPTFiles(chatDir);
+//	    System.out.println(pptFiles);
+	    
+	    //G:\My Drive\524Shared\F24\Lectures\Zoom Chats
+//	    List<OutputData> allStats = processChatDirectory(chatDir);
+
+	    // Print or save the results
+//	    allStats.forEach(System.out::println);
+	}
+
+	public static void main(String[] args) throws Exception {
+		writeQA();
+//		writeBasicQA();
+//	    File chatDir = new File("G:\\My Drive\\533Shared\\s25\\Lectures");
+////	    File chatDir = new File("G:\\My Drive\\524Shared\\F24\\Lectures");
+//	    File anOutputFile = new File(QA_FileName);
+//	    
+//	    List<LectureData> aLecturesData = processLecturesDirectory(chatDir);
+//	    if (!anOutputFile.exists()) {
+//		    anOutputFile.createNewFile();
+//		    }
+//	    LectureDataJsonlUtil.exportLectureDataToJson(aLecturesData, anOutputFile);
+//	    System.out.println(aLecturesData);
+//	    
+////	    List<File> pptFiles = findPPTFiles(chatDir);
+////	    System.out.println(pptFiles);
+//	    
+//	    //G:\My Drive\524Shared\F24\Lectures\Zoom Chats
+////	    List<OutputData> allStats = processChatDirectory(chatDir);
+//
+//	    // Print or save the results
+////	    allStats.forEach(System.out::println);
 	}
 
 }
